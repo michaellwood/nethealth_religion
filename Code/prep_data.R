@@ -56,20 +56,3 @@ df_egonet_summary <- left_join(df_egonet_summary, df_egonet_alt_summary, by = "e
 # calculate CC
 df_egonet_summary <- df_egonet_summary |> 
   mutate(cc = (m/(n*(n-1))))
-
-# calculate 
-
-# Clustering coeff = m/n(n-1), 
-# n = number of alters
-# m = Number of alter-to-alter edges
-
-
-# egoid: person who reported the tie 
-# vertex ids the two alters of the ego who the ego reported as having a tie.  
-# If the first vertex id is the same as the egoid, then this is an ego-alter tie.  
-# 
-# To DO: Compute for each ego the number of alters (degree) by collapsing over the ego-alter ties to get a count.  
-# Then delete the ego-alter ties
-# and collapse over alter-alter pairs to count the number of alter-alter ties that ego identified in that wave.  
-# Then the Clustering coeff = density of ego network = E/n(n-1), where N is size of ego net and E is the count of the number of alter-alter edges names by an ego in that wave.
-# 

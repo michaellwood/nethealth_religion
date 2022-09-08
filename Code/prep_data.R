@@ -66,6 +66,8 @@ df_w3_comb_data <- left_join(df_w3_comb_data, df_egonet_summary)
 
 # Export and Clean --------------------------------------------------------
 
+# export df as an .rds in data folder
 saveRDS(df_w3_comb_data, here('data', 'df_w3_comb_data.RDS'))
 
+# remove all unnecessary objects
 rm(list=setdiff(ls(), 'df_w3_comb_data'))

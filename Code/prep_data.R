@@ -30,7 +30,7 @@ df_egonet_edges <- read.csv(here('data', 'AlterAlterEdgeList(1-26-20).csv'))
 
 # subset the network dataframes to W3
 df_netsurv <- df_netsurv |> 
-  filter(wave == "Wave3")
+  filter(wave == 'Wave3')
 
 df_egonet_edges <- df_egonet_edges |> 
   filter(wave == 3)
@@ -49,10 +49,23 @@ df_egonet_summary <- df_ego_alter_ties |>
 
 # calculate m (number of alter-alter ties)
 df_egonet_alt_summary <- df_alter_alter_ties |> 
-  count(egoid, name = "m")
+  count(egoid, name = 'm')
 
-df_egonet_summary <- left_join(df_egonet_summary, df_egonet_alt_summary, by = "egoid")
+# join summary data frames 
+df_egonet_summary <- left_join(df_egonet_summary, df_egonet_alt_summary, by = 'egoid')
 
 # calculate CC
 df_egonet_summary <- df_egonet_summary |> 
   mutate(cc = (m/(n*(n-1))))
+
+# Merge data frames -------------------------------------------------------
+
+#create combined file with all three dataframes 
+df_w3_comb_data <- left_join(df_basicsurv, df_netsurv, by = 'egoid')
+df_w3_comb_data <- left_join(df_w3_comb_data, df_egonet_summary)
+
+# Export and Clean --------------------------------------------------------
+
+saveRDS(df_w3_comb_data, here('data', 'df_w3_comb_data.RDS'))
+
+rm(list=setdiff(ls(), 'df_w3_comb_data'))

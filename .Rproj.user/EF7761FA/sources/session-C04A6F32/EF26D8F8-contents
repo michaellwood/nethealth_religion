@@ -1,0 +1,208 @@
+
+# Header ------------------------------------------------------------------
+
+# Purpose: Regression models for the NetHealth "nones" ego network paper
+# Author: Michael Lee Wood
+# Last Updated: 20220707
+
+
+# Load data and libraries -------------------------------------------------
+
+
+library(dplyr)
+data <- readRDS("C:/Users/mlwood/Box/Research/NetHealth/Religious Nones Networks/arcs_relig_fall-2015.rds")
+
+ego_data <- read.csv("C:/Users/mlwood/Box/Research/NetHealth/Religious Nones Networks/BasicSurvey(3-6-20).csv")
+
+data <- left_join(data, ego_data, by = "egoid")
+
+# Subset data and create variables ----------------------------------------
+
+#subset to first wave
+data_w1 <- data %>% 
+  filter(wave== "Wave1")
+
+#filter out altrelig == NA
+data_w1 <- data_w1 %>% 
+  filter(!is.na(altrelig))
+
+data_w1 <- data_w1[-529,]
+
+# #create same race variable
+# data_w1 <-  data_w1 %>% 
+#   mutate(
+#     same_race = case_when(
+#       amin_1 == 1 & altamin == TRUE    ~ 1,
+#       hawaii_1 == 1 & altpacis == TRUE ~ 1,
+#       latino_1 == "Yes" & althisla == TRUE ~ 1,
+#       asian_1 == 1 & altasian == TRUE ~ 1, 
+#       black_1 == 1 & altblack == TRUE ~ 1,
+#       white_1 == 1 & altwhite== TRUE ~ 1,
+#       TRUE ~ 0
+#     ))
+
+# create same_gender variable
+data_w1 <-  data_w1 %>% 
+  mutate(
+    same_gender = case_when(
+      gender_1 == "Female" & altsex == "Female" ~ 1,
+      gender_1 == "Male" & altsex == "Male" ~ 1,
+      TRUE ~ 0
+    ))
+
+
+# test_sub <- data_w1 %>% 
+# select(egoid, altamin, altpacis, althisla, altasian, altblack, altwhite,
+#        amin_1, hawaii_1, latino_1, asian_1, black_1, white_1)
+# test_sub <- distinct(test_sub)
+# saveRDS(test_sub, 'nethealth_ego_alter_race.rds')
+
+#count the number of non-religious alters
+data_w1 <- data_w1 %>% 
+  group_by(egoid) %>% 
+  mutate(n_norelig = sum(altrelig == "NoReligion"))
+
+
+# #count the number of same-race alters
+# data_w1 <- data_w1 %>% 
+#   group_by(egoid) %>% 
+#   mutate(n_samerace = sum(same_race == 1))
+
+#count the number of same-gender alters
+data_w1 <- data_w1 %>% 
+  group_by(egoid) %>% 
+  mutate(n_samegender = sum(same_gender == 1))
+
+#count the degree
+data_w1 <- data_w1 %>% 
+  group_by(egoid) %>% 
+  mutate(degree = n())
+
+#calculate the percent of non-religious alters
+data_w1 <- data_w1 %>% 
+  group_by(egoid) %>% 
+  mutate(perc_none = n_norelig/degree)
+
+#calculate the percent of same-gender alters
+data_w1 <- data_w1 %>% 
+  group_by(egoid) %>% 
+  mutate(perc_samegender = n_samegender/degree)
+
+library(text2vec)
+
+df_ego <- data_w1 %>% 
+  ungroup() %>% 
+  select(amin_1, hawaii_1, latino_1, asian_1, black_1, white_1)
+  #select(amin_1:white_1)
+
+df_alt <- data_w1 %>% 
+  ungroup() %>% 
+  select(altamin, altpacis, althisla, altasian, altblack, altwhite)
+
+race_cols <- paste0("race_", seq_len(6))
+colnames(df_alt) <- race_cols
+colnames(df_ego) <- race_cols
+
+mat_ego <- df_ego %>%
+  mutate(
+    race_1 = case_when(race_1 == 1 ~ 1, TRUE ~ 0),
+    race_2 = case_when(race_2 == 1 ~ 1, TRUE ~ 0),
+    race_3 = case_when(race_3 == "Yes" ~ 1, TRUE ~ 0),
+    race_4 = case_when(race_4 == 1 ~ 1, TRUE ~ 0),
+    race_5 = case_when(race_5 == 1 ~ 1, TRUE ~ 0),
+    race_6 = case_when(race_6 == 1 ~ 1, TRUE ~ 0)
+  ) %>%  as.matrix()
+
+rownames(mat_ego) <- data_w1$egoid
+
+mat_alt <- df_alt %>%
+  mutate(
+    race_1 = as.numeric(race_1),
+    race_2 = as.numeric(race_2),
+    race_3 = as.numeric(race_3),
+    race_4 = as.numeric(race_4),
+    race_5 = as.numeric(race_5),
+    race_6 = as.numeric(race_6)
+  ) %>%  as.matrix()
+
+
+#mat_ego <- mat_ego / rowSums(mat_ego)
+
+mat_sim <- text2vec::sim2(mat_ego, mat_alt, method = "cosine")
+
+data_w1$race_similarity <- diag(mat_sim)
+
+#calculate the percent of same-race alters
+data_w1 <- data_w1 %>%
+  group_by(egoid) %>%
+  mutate(avg_race_similarity = (sum(race_similarity)/degree))
+
+
+#subset to only the variables needed for the model
+data_w1_sub <- data_w1 %>% 
+  select(egoid, ego_relig, degree, n_norelig, perc_none, gender_1,
+         race_1, avg_race_similarity, perc_samegender)
+
+
+# data_w1_sub <- data_w1 %>% 
+#   select(egoid, ego_relig, degree, n_norelig, perc_none, gender_1,
+#          race_1, perc_samegender,
+#          altamin, altpacis, althisla, altasian, altblack, altwhite,
+#          amin_1, hawaii_1, latino_1, asian_1, black_1, white_1,
+#          avg_race_similarity, race_similarity)
+
+#get rid of duplicates so there's only one observation for each ego
+data_w1_sub <- distinct(data_w1_sub)  
+
+
+table(data_w1_sub$ego_relig)
+
+
+install.packages("jtools")
+install.packages("ggstance")
+install.packages("sandwich")
+install.packages("broom.mixed")
+library(jtools)
+
+data_w1_sub$race_1 <- as.factor(data_w1_sub$race_1)
+levels(data_w1_sub$race_1)
+
+data_w1_sub <- within(data_w1_sub, race_1 <- relevel(race_1, ref = 6))
+
+levels(data_w1_sub$race_1)
+
+model <- lm(perc_none ~ ego_relig + degree + avg_race_similarity + perc_samegender
+            + gender_1 + race_1, data = data_w1_sub)
+
+jtools::plot_summs(model, robust = "HC1",
+                   coefs = c("Religion: None" = "ego_religNo Religion",
+                             "Religion: Other"= "ego_religOther Religion",
+                             "Religion: Protestant" = "ego_religProtestant",
+                             "Degree" = "degree",
+                             "Gender: Male" = "gender_1Male",
+                             "Percent Same Gender" = "perc_samegender",
+                             "Race: Asian-American" = "race_1Asian-American",
+                             "Race: African-American" = "race_1African-American",
+                             "Race: Foreign Student" = "race_1Foreign Student",
+                             "Race: Latino/a" = "race_1Latino/a",
+                             "Avg Race Similarity" = "avg_race_similarity"
+                             ))
+
+summary(model)
+
+
+model <- lm(degree ~ ego_relig + race_1 + avg_race_similarity +
+              gender_1 + perc_samegender, data = data_w1_sub)
+summary(model)
+jtools::plot_summs(model, robust = "HC1",
+                   coefs = c("Religion: None" = "ego_religNo Religion",
+                             "Religion: Other"= "ego_religOther Religion",
+                             "Religion: Protestant" = "ego_religProtestant",
+                             "Degree" = "degree",
+                             "Gender: Male" = "gender_1Male",
+                             "Percent Same Gender" = "perc_samegender",
+                             "Race: Asian-American" = "race_1Asian-American",
+                             "Race: African-American" = "race_1African-American",
+                             "Race: Foreign Student" = "race_1Foreign Student",
+                             "Race: Latino/a" = "race_1Latino/a",
+                             "Avg Race Similarity" = "avg_race_similarity"))

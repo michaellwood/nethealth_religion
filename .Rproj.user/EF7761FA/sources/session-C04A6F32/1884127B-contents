@@ -16,9 +16,20 @@ library(broom)
 library(ggplot2)
 library(ggfortify)
 
+
+# Subset the data ---------------------------------------------------------
+
+df_w3_comb_data <- df_w3_comb_data |> 
+  select(egoid, yourelig_1, degree, n_norelig, perc_none, gender_1, 
+         perc_samegender, cc, ei)
+
+df_w3_comb_data <- distinct(df_w3_comb_data)  
+
+
+
 hist(df_w3_comb_data$ei)
 
-model <- lm(ei ~ yourelig_1, df_w3_comb_data)
+model <- lm(ei ~ yourelig_1 + degree, df_w3_comb_data)
 summary(model)
 
 model.diag.metrics <- augment(model)
@@ -34,7 +45,13 @@ autoplot(model)
 df_w3_comb_data <- df_w3_comb_data |> 
   filter(!is.na(cc))
 
-model <- lm(cc ~ yourelig_1, df_w3_comb_data)
+model <- lm(cc ~ yourelig_1 + degree, df_w3_comb_data)
 summary(model)
 
-summary(df_w3_comb_data$cc)
+model <- lm(perc_none ~ yourelig_1 + degree, df_w3_comb_data)
+summary(model)
+
+
+model <- lm(degree ~ yourelig_1, df_w3_comb_data)
+summary(model)
+

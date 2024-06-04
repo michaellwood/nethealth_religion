@@ -3,7 +3,7 @@
 # Title: plot_compare_2_sims
 # Author: Michael Wood
 # Created: 20240603
-# Last Edited: 20240603
+# Last Edited: 20240604
 # Purpose: Creates a plot that compares the distributions of the simulated
 #           ego networks to the observed. 
 
@@ -62,12 +62,6 @@ z_prot <- (0.583 - 0.805)/0.0508
 #meaning all groups manifest more homophily than expected by chance.
 
 
-# Combine dataframes ------------------------------------------------------
-
-#df_sim_avg_ei <- df_sim_avg_ei %>% 
-#  select(-sim_num)
-#df_sim_avg_ei <- rbind(df_sim_avg_ei, df_observed_avg_ei)
-
 # Comparison plot ---------------------------------------------------------
 
 # Beeswarm plot in ggplot2
@@ -85,6 +79,7 @@ ggplot() +
   geom_hline(yintercept = 0)
 
 
+#optional violin plot
 # ggplot(df_sim_avg_ei, aes(x=yourelig_1, y=percent, fill=yourelig_1, shape = type)) + 
 #   geom_violin(alpha=.5)+
 #   geom_point(data=df_observed_avg_ei)+

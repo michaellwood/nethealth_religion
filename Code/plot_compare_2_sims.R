@@ -16,7 +16,6 @@ library(here)
 library(tidyr)
 library(ggplot2)
 library(ggbeeswarm)
-library(viridis)
 
 
 # Load data ---------------------------------------------------------------
@@ -75,7 +74,6 @@ z_prot <- (0.583 - 0.805)/0.0508
 ggplot() +
   geom_quasirandom(data = df_sim_avg_ei, aes(x = yourelig_1, y = percent, color = yourelig_1, shape = type), cex=2, width = .5) +
   geom_point(data=df_observed_avg_ei, aes(x=yourelig_1, y=percent, shape = type),  cex=3)+
-  #scale_color_viridis(discrete=TRUE, option="viridis")+
   scale_color_brewer(palette = "RdYlBu", guide = "none")+
   xlab("Ego's Religious Identity")+
   ylab("Average EI Score")+

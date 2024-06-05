@@ -66,17 +66,25 @@ z_prot <- (0.583 - 0.805)/0.0508
 
 # Beeswarm plot in ggplot2
 ggplot() +
-  geom_quasirandom(data = df_sim_avg_ei, aes(x = yourelig_1, y = percent, color = yourelig_1, shape = type), cex=2, width = .5) +
-  geom_point(data=df_observed_avg_ei, aes(x=yourelig_1, y=percent, shape = type),  cex=3)+
+  geom_quasirandom(data = df_sim_avg_ei, aes(x = yourelig_1, y = percent, color = yourelig_1, shape = type), cex=1, width = .5) +
+  geom_point(data=df_observed_avg_ei, aes(x=yourelig_1, y=percent, shape = type),  cex=2)+
   scale_color_brewer(palette = "RdYlBu", guide = "none")+
-  xlab("Ego's Religious Identity")+
+  xlab("\nEgo's Religious Identity")+
   ylab("Average EI Score")+
   theme_minimal()+
   scale_y_continuous(breaks = seq(-1, 1, by = .2), limits=c(-1,1))+
   scale_shape_manual(values = c(18, 16))+
   labs(shape = "Data Type",
-       title = "Average EI Scores in Observed vs Simulated Ego Networks")+
+       title = "Average EI Scores in Observed vs Simulated Ego Networks\n")+
   geom_hline(yintercept = 0)
+
+
+ggsave("plot.jpg",
+       width = 6.5,
+       height = 5,
+       units = "in",
+       device= "jpg",
+       dpi=700)
 
 
 #optional violin plot

@@ -37,6 +37,10 @@ round(mean(df_w3_model_data$ei_norm),4)
 round(sd(df_w3_model_data$ei_norm),4)
 hist(df_w3_model_data$ei_norm)
 
+#Mean ego degree
+summary(df_w3_model_data$degree)
+round(sd(df_w3_model_data$degree),4)
+
 #EI by religious identity
 df_w3_model_data %>%
   group_by(yourelig_1) %>%
